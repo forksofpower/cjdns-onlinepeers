@@ -1,0 +1,36 @@
+#!/bin/sh
+
+#Online Peers - A script using cjdcmd (https://github.com/inhies/cjdcmd) to check the connectivity of the peers listed in your cjdroute.conf
+#Version: 1.0
+#License: MIT
+#Issues/ideas: http://gitboria.com/prurigro/cjdns-onlinepeers or prurigro@darkcloud.ca
+
+#Define variables
+CJDROUTE="/etc/cjdroute.conf"
+TMPFILE="/tmp/cjdpeers.tmp"
+JSAWK="/tmp/jsawk.sh"
+
+#Setup temp files
+curl -s -L http://github.com/micha/jsawk/raw/master/jsawk > "$JSAWK"
+echo -n > "$TMPFILE"
+
+#Build list of connected peer ipv6 addresses the temp file
+for ip in $(cjdcmd peers | grep -o -e "fc[^\ ]*"); do
+	echo "$ip" >> "$TMPFILE"
+done
+
+#Grab each public key from the cjdroute.conf connectTo list, convert to ipv6 and see if it matches any listed in the temporary peer list created above
+for pubkey in $(cat /etc/cjdroute.conf | sh "$JSAWK" -n 'out(this.interfaces.UDPInterface.connectTo)' | \grep --color=never -o -E "[a-zA-Z0-9]*\.k"); do
+	PUBIP=$(cjdcmd  ip "$pubkey" | \grep -o -E ^[^\ ]*)
+	echo -n "${pubkey} - ${PUBIP}: "
+	if [ $(\grep -c "$PUBIP" "$TMPFILE") = 0 ]; then
+		echo "NOT CONNECTED"
+	elif [ $(\grep -c "$PUBIP" "$TMPFILE") = 1 ]; then
+		echo "CONNECTED"
+	else
+		echo "ERROR, PUBLIC KEY LISTED MORE THAN ONCE"
+	fi
+done
+
+#Clean up temp files
+rm "$TMPFILE" "$JSAWK"

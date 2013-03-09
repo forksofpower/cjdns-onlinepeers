@@ -1,0 +1,13 @@
+To run cjdns-onlinepeers, ensure:
+	The variables at the top of the script are set correctly
+	That cjdcmd can be run from $PATH
+	That cjdcmd has been configured to access the admin server by setting up ~/.cjdnsadmin
+
+A typcical ~/.cjdnsadmin file uses the values from your config and looks something like:
+{
+    "addr": "127.0.0.1",
+    "port": 11234,
+    "password": "yourpassword"
+}
+
+You may then simply run 'sh cjdns-onlinepeers' to list the pubkey + ipv6 of the peers in your config and their online status
