@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #Online Peers - A script using cjdcmd (https://github.com/inhies/cjdcmd) to check the connectivity of the peers listed in your cjdroute.conf
 #Version: 1.0
