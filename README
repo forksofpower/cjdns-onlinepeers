@@ -2,6 +2,7 @@ To run cjdns-onlinepeers, ensure:
 	The variables at the top of the script are set correctly
 	That cjdcmd can be run from $PATH
 	That cjdcmd has been configured to access the admin server by setting up ~/.cjdnsadmin
+  You should the SpiderMonkey 'js' binary in $PATH
 
 A typcical ~/.cjdnsadmin file uses the values from your config and looks something like:
 {

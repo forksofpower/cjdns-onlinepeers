@@ -1,14 +1,14 @@
 #!/bin/bash
 
 #Online Peers - A script using cjdcmd (https://github.com/inhies/cjdcmd) to check the connectivity of the peers listed in your cjdroute.conf
-#Version: 1.1
+#Version: 1.2
 #License: MIT
 #Issues/ideas: http://gitboria.com/prurigro/cjdns-onlinepeers or prurigro@darkcloud.ca
 
 #Define variables
 CJDROUTE="/etc/cjdroute.conf"
 TMPFILE="/tmp/cjdpeers.tmp"
-JSAWK="/tmp/jsawk.sh"
+JSAWK="/tmp/jsawk-${USER}.sh"
 
 #Fail if .cjdnsadmin is not configured
 if [ ! -f "$HOME"/.cjdnsadmin ]; then
@@ -16,8 +16,16 @@ if [ ! -f "$HOME"/.cjdnsadmin ]; then
   exit 1
 fi
 
+#Fail if $CJDROUTE is empty or doesn't exist
+if [ ! -f "$CJDROUTE" ]; then
+  echo "Your cjdroute.conf is set to ${CJDROUTE}, but it doesn't exist at this location"
+  exit 1
+fi
+
 #Setup temp file and jsawk
 if [ ! -f "$JSAWK" ]; then
+  curl -s -L http://github.com/micha/jsawk/raw/master/jsawk > "$JSAWK"
+elif [ -z $(cat "$JSAWK") ]; then
   curl -s -L http://github.com/micha/jsawk/raw/master/jsawk > "$JSAWK"
 fi
 echo -n > "$TMPFILE"
@@ -28,7 +36,7 @@ for ip in $(cjdcmd peers | grep -o -e "fc[^\ ]*"); do
 done
 
 #Grab each public key from the cjdroute.conf connectTo list, convert to ipv6 and see if it matches any listed in the temporary peer list created above
-for pubkey in $(cat /etc/cjdroute.conf | sh "$JSAWK" -n 'out(this.interfaces.UDPInterface.connectTo)' | \grep --color=never -o -E "[a-zA-Z0-9]*\.k"); do
+for pubkey in $(cat /etc/cjdroute.conf | /bin/bash "$JSAWK" -n 'out(this.interfaces.UDPInterface.connectTo)' | \grep --color=never -o -E "[a-zA-Z0-9]*\.k"); do
 	PUBIP=$(cjdcmd  ip "$pubkey" | \grep -o -E ^[^\ ]*)
 	echo -n "${pubkey} - ${PUBIP}: "
 	if [ $(\grep -c "$PUBIP" "$TMPFILE") = 0 ]; then
