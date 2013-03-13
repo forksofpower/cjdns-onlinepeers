@@ -1,8 +1,11 @@
+CJDNS ONLINEPEERS - README
+
 To run cjdns-onlinepeers, ensure:
-	The variables at the top of the script are set correctly
-	That cjdcmd can be run from $PATH
-	That cjdcmd has been configured to access the admin server by setting up ~/.cjdnsadmin
-  You should the SpiderMonkey 'js' binary in $PATH
+
+	* Either curl or wget is installed and available
+	* A compatible js interpreter (SpiderMonkey is known to work) availalble in $PATH (eg: /usr/bin/js)
+	* The variables at the top of the script are set correctly
+	* That cjdcmd has been configured to access the admin server by setting up ~/.cjdnsadmin
 
 A typcical ~/.cjdnsadmin file uses the values from your config and looks something like:
 {
@@ -10,5 +13,10 @@ A typcical ~/.cjdnsadmin file uses the values from your config and looks somethi
     "port": 11234,
     "password": "yourpassword"
 }
+
+The recommended js interpreter for the following operating systems can be obtained as follows:
+	* Archlinux: pacman -Sy js
+	* Debian: apt-get install spidermonkey-bin
+	* Ubuntu: apt-get install nodejs
 
 You may then simply run 'sh cjdns-onlinepeers' to list the pubkey + ipv6 of the peers in your config and their online status

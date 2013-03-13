@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Online Peers - A script using cjdcmd (https://github.com/inhies/cjdcmd) to check the connectivity of the peers listed in your cjdroute.conf
-#Version: 1.2.1
+#Version: 1.3
 #License: MIT
 #Issues/ideas: http://gitboria.com/prurigro/cjdns-onlinepeers or prurigro@darkcloud.ca
 
@@ -9,6 +9,18 @@
 CJDROUTE="/etc/cjdroute.conf"
 TMPFILE="/tmp/cjdpeers.tmp"
 JSAWK="/tmp/jsawk-${USER}.sh"
+CJDCMD="cjdcmd"
+
+function getjsawk {
+  if [ -f $(command -v curl) ]; then
+    curl -s -L http://github.com/micha/jsawk/raw/master/jsawk > "$JSAWK"
+  elif [ -f $(command -v wget) ]; then
+    wget -q -O "$JSAWK" http://github.com/micha/jsawk/raw/master/jsawk
+  else
+    echo "Neither curl nor wget are available in \$PATH, please install one to continue"
+    exit
+  fi
+}
 
 #Fail if .cjdnsadmin is not configured
 if [ ! -f "$HOME"/.cjdnsadmin ]; then
@@ -22,22 +34,24 @@ if [ ! -f "$CJDROUTE" ]; then
   exit 1
 fi
 
-#Setup temp file and jsawk
+#Download jsawk if it doesn't already exist of the file is empty
 if [ ! -f "$JSAWK" ]; then
-  curl -s -L http://github.com/micha/jsawk/raw/master/jsawk > "$JSAWK"
-elif [ $(cat "$JSAWK" | wc -m) = 0 ]; then
-  curl -s -L http://github.com/micha/jsawk/raw/master/jsawk > "$JSAWK"
+	getjsawk
+elif [ $(cat "$JSAWK" | wc -m) = 0  ]; then 
+	getjsawk
 fi
+
+#Zero the tempfile
 echo -n > "$TMPFILE"
 
 #Build list of connected peer ipv6 addresses the temp file
-for ip in $(cjdcmd peers | grep -o -e "fc[^\ ]*"); do
+for ip in $($CJDCMD peers | grep -o -e "fc[^\ ]*"); do
 	echo "$ip" >> "$TMPFILE"
 done
 
 #Grab each public key from the cjdroute.conf connectTo list, convert to ipv6 and see if it matches any listed in the temporary peer list created above
 for pubkey in $(cat /etc/cjdroute.conf | /bin/bash "$JSAWK" -n 'out(this.interfaces.UDPInterface.connectTo)' | \grep --color=never -o -E "[a-zA-Z0-9]*\.k"); do
-	PUBIP=$(cjdcmd  ip "$pubkey" | \grep -o -E ^[^\ ]*)
+	PUBIP=$($CJDCMD  ip "$pubkey" | \grep -o -E ^[^\ ]*)
 	echo -n "${pubkey} - ${PUBIP}: "
 	if [ $(\grep -c "$PUBIP" "$TMPFILE") = 0 ]; then
 		echo "NOT CONNECTED"
