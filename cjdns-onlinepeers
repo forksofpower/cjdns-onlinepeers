@@ -12,9 +12,9 @@ JSAWK="/tmp/jsawk-${USER}.sh"
 CJDCMD="cjdcmd"
 
 function getjsawk {
-  if [ -f $(command -v curl) ]; then
+  if [ $(command -v curl) ]; then
     curl -s -L http://github.com/micha/jsawk/raw/master/jsawk > "$JSAWK"
-  elif [ -f $(command -v wget) ]; then
+  elif [ $(command -v wget) ]; then
     wget -q -O "$JSAWK" http://github.com/micha/jsawk/raw/master/jsawk
   else
     echo "Neither curl nor wget are available in \$PATH, please install one to continue"
